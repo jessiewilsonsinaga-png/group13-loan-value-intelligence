@@ -736,7 +736,29 @@ new Chart(document.getElementById('purposeChart'), {
   }
 });
 
-// 3. Feature importance (real SHAP-derived %, clean model)
+// 3. Credit score band vs avg value, loan calls (real, computed from training data)
+new Chart(document.getElementById('creditChart'), {
+  type: 'bar',
+  data: {
+    labels: ['<580','580-660','660-720','720-780','780+'],
+    datasets: [{
+      label: 'Avg Call Value ($)',
+      data: [4140, 4241, 4019, 3568, 3603],
+      backgroundColor: [BLUE,NAVY,NAVY,'#93c5fd','#93c5fd'],
+      borderRadius: 5,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` $${c.raw.toLocaleString()}` } } },
+    scales: {
+      x: { grid: { display: false }, title: { display: true, text: 'Credit Score Band' } },
+      y: { grid: { color: '#f3f4f6' }, ticks: { callback: v => '$' + v.toLocaleString() }, min: 3000 }
+    }
+  }
+});
+
+// 4. Feature importance (real SHAP-derived %, clean model)
 new Chart(document.getElementById('featureChart'), {
   type: 'bar',
   data: {
@@ -756,7 +778,7 @@ new Chart(document.getElementById('featureChart'), {
   }
 });
 
-// 4. Employee performance vs value (real, computed from training data)
+// 5. Employee performance vs value (real, computed from training data)
 new Chart(document.getElementById('empChart'), {
   type: 'bar',
   data: {
