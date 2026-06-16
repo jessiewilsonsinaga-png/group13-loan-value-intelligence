@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loan Call Value Intelligence | Group 13</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --navy: #0f2d5c;
+    --blue: #1e56a0;
+    --lightblue: #2563eb;
+    --gold: #f59e0b;
+    --green: #10b981;
+    --red: #ef4444;
+    --gray: #6b7280;
+    --lightgray: #f3f4f6;
+    --border: #e5e7eb;
+    --white: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #1f2937; background: #fafafa; line-height: 1.6; }
+  a { color: var(--lightblue); }
+
+  /* NAV */
+  nav {
+    background: var(--navy);
+    color: white;
+    padding: 0 2rem;
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  }
+  nav .brand { font-size: 1rem; font-weight: 700; letter-spacing: .02em; }
+  nav .links { display: flex; gap: 1.5rem; font-size: .85rem; }
+  nav .links a { color: rgba(255,255,255,.8); text-decoration: none; transition: color .2s; }
+  nav .links a:hover { color: white; }
+  .group-badge {
+    background: var(--gold);
+    color: var(--navy);
+    font-weight: 800;
+    font-size: .9rem;
+    padding: .25rem .75rem;
+    border-radius: 99px;
+    letter-spacing: .05em;
+  }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 60%, #2563eb 100%);
+    color: white;
+    padding: 5rem 2rem 4rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .hero-content { position: relative; max-width: 780px; margin: 0 auto; }
+  .hero-tag { display: inline-block; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); border-radius: 99px; padding: .3rem 1rem; font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 1.5rem; }
+  .hero h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; line-height: 1.15; margin-bottom: 1rem; }
+  .hero h1 span { color: var(--gold); }
+  .hero p { font-size: 1.1rem; color: rgba(255,255,255,.85); max-width: 640px; margin: 0 auto 2rem; }
+  .hero-meta { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; font-size: .9rem; color: rgba(255,255,255,.7); }
+  .hero-meta span::before { content: '● '; color: var(--gold); }
+
+  /* SECTIONS */
+  section { padding: 4rem 2rem; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .section-label { font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--lightblue); margin-bottom: .5rem; }
+  .section-title { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 800; color: var(--navy); margin-bottom: 1rem; }
+  .section-subtitle { font-size: 1rem; color: var(--gray); max-width: 680px; margin-bottom: 2.5rem; }
+
+  /* METRICS */
+  .metrics { background: white; border-top: 4px solid var(--gold); }
+  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; background: var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+  .metric-card { background: white; padding: 1.8rem 1.5rem; text-align: center; transition: background .2s; }
+  .metric-card:hover { background: var(--lightgray); }
+  .metric-num { font-size: 2.4rem; font-weight: 900; color: var(--navy); line-height: 1; }
+  .metric-num.gold { color: var(--gold); }
+  .metric-num.green { color: var(--green); }
+  .metric-num.blue { color: var(--lightblue); }
+  .metric-label { font-size: .8rem; color: var(--gray); margin-top: .4rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+  .metric-sub { font-size: .75rem; color: #9ca3af; margin-top: .2rem; }
+
+  /* STORY */
+  .story { background: var(--lightgray); }
+  .story-flow { display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; margin-top: 2rem; }
+  .story-step { flex: 1; min-width: 150px; background: white; border-radius: 10px; padding: 1.5rem 1rem; text-align: center; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,.06); margin: .5rem; }
+  .story-step:not(:last-child)::after { content: '→'; position: absolute; right: -1rem; top: 50%; transform: translateY(-50%); font-size: 1.2rem; color: var(--lightblue); z-index: 1; display: none; }
+  .step-icon { font-size: 2rem; margin-bottom: .7rem; }
+  .step-title { font-weight: 700; font-size: .9rem; color: var(--navy); }
+  .step-desc { font-size: .78rem; color: var(--gray); margin-top: .3rem; }
+
+  /* CHARTS */
+  .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 1.5rem; }
+  .chart-card { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,.07); border: 1px solid var(--border); }
+  .chart-title { font-weight: 700; font-size: 1rem; color: var(--navy); margin-bottom: .3rem; }
+  .chart-subtitle { font-size: .8rem; color: var(--gray); margin-bottom: 1rem; }
+  .chart-container { position: relative; height: 280px; }
+  .insight-box { margin-top: 1rem; background: #eff6ff; border-left: 3px solid var(--lightblue); padding: .75rem 1rem; border-radius: 0 6px 6px 0; font-size: .83rem; color: #1e40af; }
+  .insight-box strong { display: block; margin-bottom: .2rem; }
+
+  /* WHAT-IF TOOL */
+  .whatif { background: var(--navy); color: white; }
+  .whatif .section-title { color: white; }
+  .whatif .section-subtitle { color: rgba(255,255,255,.7); }
+  .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
+  @media(max-width: 700px) { .tool-grid { grid-template-columns: 1fr; } }
+  .tool-controls { background: rgba(255,255,255,.08); border-radius: 12px; padding: 1.5rem; }
+  .control-group { margin-bottom: 1.5rem; }
+  .control-label { font-size: .85rem; font-weight: 600; color: rgba(255,255,255,.9); margin-bottom: .4rem; display: flex; justify-content: space-between; }
+  .control-label span { color: var(--gold); font-weight: 700; }
+  input[type=range] { width: 100%; accent-color: var(--gold); }
+  .seg { display: flex; gap: .5rem; flex-wrap: wrap; }
+  .seg button { flex: 1; min-width: 90px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2); color: rgba(255,255,255,.85); padding: .55rem .4rem; border-radius: 8px; font-size: .78rem; font-weight: 600; cursor: pointer; transition: .15s; font-family: inherit; }
+  .seg button.on { background: var(--gold); color: var(--navy); border-color: transparent; }
+  .tool-result { background: rgba(255,255,255,.06); border-radius: 12px; padding: 2rem; text-align: center; border: 1px solid rgba(255,255,255,.15); }
+  .result-value { font-size: 3.5rem; font-weight: 900; color: var(--gold); line-height: 1; }
+  .result-label { font-size: .85rem; color: rgba(255,255,255,.7); margin-top: .5rem; }
+  .result-hint { font-size: .8rem; color: rgba(255,255,255,.6); margin-top: 1rem; min-height: 2.4em; }
+  .tool-disclaimer { font-size: .72rem; color: rgba(255,255,255,.4); margin-top: 1rem; }
+
+  /* ETHICS */
+  .ethics { background: #fefce8; border-top: 4px solid var(--gold); }
+  .ethics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; }
+  .ethics-card { background: white; border-radius: 10px; padding: 1.4rem; border: 1px solid #fde68a; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+  .ethics-icon { font-size: 1.8rem; margin-bottom: .7rem; }
+  .ethics-title { font-weight: 700; color: var(--navy); font-size: .95rem; margin-bottom: .4rem; }
+  .ethics-body { font-size: .82rem; color: #374151; line-height: 1.55; }
+  .safeguard-tag { display: inline-block; margin-top: .6rem; background: #dcfce7; color: #166534; font-size: .72rem; font-weight: 700; padding: .2rem .6rem; border-radius: 4px; }
+
+  /* RECOMMENDATIONS */
+  .recs { background: white; }
+  .recs-list { display: flex; flex-direction: column; gap: 1rem; }
+  .rec-card { display: flex; gap: 1.2rem; background: white; border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem 1.4rem; box-shadow: 0 2px 6px rgba(0,0,0,.05); align-items: flex-start; transition: box-shadow .2s; }
+  .rec-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.1); }
+  .rec-priority { min-width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: .9rem; color: white; }
+  .p1 { background: #ef4444; }
+  .p2 { background: var(--gold); }
+  .p3 { background: var(--green); }
+  .p4 { background: var(--lightblue); }
+  .rec-body { flex: 1; }
+  .rec-title { font-weight: 700; color: var(--navy); font-size: .95rem; margin-bottom: .3rem; }
+  .rec-desc { font-size: .83rem; color: var(--gray); }
+  .rec-impact { display: inline-block; margin-top: .4rem; font-size: .75rem; font-weight: 700; padding: .15rem .6rem; border-radius: 4px; }
+  .impact-high { background: #fee2e2; color: #991b1b; }
+  .impact-med { background: #fef3c7; color: #92400e; }
+  .impact-low { background: #dbeafe; color: #1e40af; }
+
+  /* TECHNICAL ACCORDION */
+  .tech { background: var(--lightgray); }
+  .accordion { background: white; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+  .accordion-header { display: flex; justify-content: space-between; align-items: center; padding: 1.1rem 1.4rem; cursor: pointer; font-weight: 700; color: var(--navy); font-size: .95rem; user-select: none; }
+  .accordion-header:hover { background: var(--lightgray); }
+  .accordion-arrow { transition: transform .3s; }
+  .accordion-body { padding: 0 1.4rem; max-height: 0; overflow: hidden; transition: max-height .4s ease, padding .3s; font-size: .85rem; color: #374151; line-height: 1.7; }
+  .accordion-body.open { max-height: 2000px; padding: .3rem 1.4rem 1.4rem; }
+  .accordion-arrow.open { transform: rotate(180deg); }
+  .tech-table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: .82rem; }
+  .tech-table th { background: var(--lightgray); text-align: left; padding: .6rem .8rem; font-weight: 700; color: var(--navy); }
+  .tech-table td { padding: .5rem .8rem; border-top: 1px solid var(--border); }
+  .tech-table tr:hover td { background: #f9fafb; }
+  code { background: #f3f4f6; padding: .1rem .4rem; border-radius: 3px; font-size: .82em; font-family: 'Courier New', monospace; }
+
+  /* FOOTER */
+  footer { background: var(--navy); color: rgba(255,255,255,.6); padding: 2rem; text-align: center; font-size: .8rem; }
+  footer strong { color: white; }
+  footer .disc { display: block; margin-top: .6rem; color: rgba(255,255,255,.4); font-size: .72rem; max-width: 820px; margin-left: auto; margin-right: auto; }
+
+  /* UTILITY */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  @media(max-width: 650px) { .two-col { grid-template-columns: 1fr; } .charts-grid { grid-template-columns: 1fr; } }
+  .highlight-box { background: linear-gradient(135deg, var(--navy), var(--blue)); color: white; border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0; }
+  .highlight-box h3 { font-size: 1.1rem; margin-bottom: .5rem; color: var(--gold); }
+  .highlight-box p { font-size: .85rem; color: rgba(255,255,255,.85); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="brand">Loan Call Intelligence &mdash; IMD AI &amp; Analytics Bootcamp</div>
+  <div class="links">
+    <a href="#findings">Findings</a>
+    <a href="#tool">Decision Tool</a>
+    <a href="#ethics">Ethics</a>
+    <a href="#recommendations">Actions</a>
+  </div>
+  <div class="group-badge">GROUP 13</div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-content">
+    <div class="hero-tag">IMD AI &amp; Analytics Bootcamp &nbsp;|&nbsp; Group 13</div>
+    <h1>Which Customer Calls Are Worth the <span>Most</span>?</h1>
+    <p>A prospective acquirer values every loan call with a secret formula. We reverse-engineered it from 231,146 historical calls, then valued 25,698 new ones &mdash; accurately, transparently, and without using a single sensitive personal attribute.</p>
+    <div class="hero-meta">
+      <span>Consumer lending call center</span>
+      <span>231,146 calls analyzed</span>
+      <span>25,698 calls valued</span>
+      <span>Two-stage XGBoost model</span>
+    </div>
+  </div>
+</div>
+
+<!-- METRICS -->
+<section class="metrics" id="metrics">
+  <div class="container">
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-num blue">231,146</div>
+        <div class="metric-label">Training Calls</div>
+        <div class="metric-sub">with known acquirer value</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-num gold">55.7%</div>
+        <div class="metric-label">Calls That Became a Loan</div>
+        <div class="metric-sub">vs. 44.3% with no loan issued</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-num green">$3,951</div>
+        <div class="metric-label">Avg Value: Loan Call</div>
+        <div class="metric-sub">vs. $55 for no-loan calls</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-num blue">72&times;</div>
+        <div class="metric-label">Value Multiplier</div>
+        <div class="metric-sub">loan vs. no-loan calls</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-num gold">$57.6M</div>
+        <div class="metric-label">Predicted Portfolio Value</div>
+        <div class="metric-sub">from 25,698 unseen calls</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STORY / CHALLENGE -->
+<section class="story" id="challenge">
+  <div class="container">
+    <div class="section-label">The Business Challenge</div>
+    <div class="section-title">Every call has a price tag. We reverse-engineered it.</div>
+    <p class="section-subtitle">A prospective acquirer prices every individual loan call with a secret formula &mdash; not one score per customer, a fresh value for every call. They revealed their value for 231,146 calls and asked us to predict it for 25,698 new ones, scored on how close our number lands to theirs.</p>
+
+    <div class="story-flow">
+      <div class="story-step">
+        <div class="step-icon">&#128222;</div>
+        <div class="step-title">Call Received</div>
+        <div class="step-desc">Client calls about a loan, new or existing</div>
+      </div>
+      <div class="story-step">
+        <div class="step-icon">&#128203;</div>
+        <div class="step-title">Application Data</div>
+        <div class="step-desc">Loan terms and call details captured</div>
+      </div>
+      <div class="story-step">
+        <div class="step-icon">&#129309;</div>
+        <div class="step-title">Decision</div>
+        <div class="step-desc">A loan is issued for ~56% of calls &mdash; almost flat across loan purposes</div>
+      </div>
+      <div class="story-step">
+        <div class="step-icon">&#128176;</div>
+        <div class="step-title">Repayment</div>
+        <div class="step-desc">Serviced on time, late, fully repaid, or charged off</div>
+      </div>
+      <div class="story-step" style="border: 2px solid var(--gold);">
+        <div class="step-icon">&#127919;</div>
+        <div class="step-title">VALUE</div>
+        <div class="step-desc">The acquirer's secret value for this exact call</div>
+      </div>
+    </div>
+
+    <div class="highlight-box" style="margin-top:2rem;">
+      <h3>Our Task</h3>
+      <p>Given 231,146 historical calls where the acquirer's VALUE was known, build a model that predicts VALUE for 25,698 new calls &mdash; scored on Mean Absolute Error (MAE), the average dollar gap to the true value. We optimised directly for that metric and validated everything on calls the model never saw during training.</p>
+    </div>
+  </div>
+</section>
+
+<!-- METHODOLOGY -->
+<section style="background:white; padding: 3rem 2rem;" id="methodology">
+  <div class="container">
+    <div class="section-label">Our Analytical Approach</div>
+    <div class="section-title">From six messy data sources to one number we can defend</div>
+    <p class="section-subtitle">Six raw systems, reconciled into one ledger, then modelled with two specialist regressors &mdash; deliberately no black-box neural nets.</p>
+
+    <div class="two-col" style="gap: 3rem; align-items: start;">
+      <div>
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+          <div style="display:flex;gap:1rem;align-items:flex-start;">
+            <div style="min-width:36px;height:36px;background:var(--navy);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:.9rem;">1</div>
+            <div>
+              <div style="font-weight:700;color:var(--navy);">Data Cleaning</div>
+              <div style="font-size:.83rem;color:var(--gray);margin-top:.2rem;">Six raw sources &mdash; call logs, customer demographics, employee rosters, loan applications, disbursements and repayment telemetry &mdash; reconciled into one 231k-row ledger. All raw PII (SSNs, passport numbers, credit card numbers, plaintext passwords, IPv6 addresses) was stripped before any modelling.</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:1rem;align-items:flex-start;">
+            <div style="min-width:36px;height:36px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:.9rem;">2</div>
+            <div>
+              <div style="font-weight:700;color:var(--navy);">Two-World Segmentation</div>
+              <div style="font-size:.83rem;color:var(--gray);margin-top:.2rem;">Calls split cleanly into &ldquo;no loan issued&rdquo; (44.3% of calls, value &asymp;$55, highly predictable) vs. &ldquo;loan issued&rdquo; (55.7%, value &asymp;$3,951, all the variation). Each gets its own specialist model &mdash; simpler and far more accurate than one combined model.</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:1rem;align-items:flex-start;">
+            <div style="min-width:36px;height:36px;background:var(--lightblue);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:.9rem;">3</div>
+            <div>
+              <div style="font-weight:700;color:var(--navy);">Model Training</div>
+              <div style="font-size:.83rem;color:var(--gray);margin-top:.2rem;">Two gradient-boosted regressors (XGBoost, <code>reg:absoluteerror</code>), trained to directly minimise Mean Absolute Error &mdash; the exact metric we're scored on. The loan specialist predicts value as a fraction of loan size, which sharpened large-loan estimates considerably.</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:1rem;align-items:flex-start;">
+            <div style="min-width:36px;height:36px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:.9rem;">4</div>
+            <div>
+              <div style="font-weight:700;color:var(--navy);">Validation &amp; Fairness Check</div>
+              <div style="font-size:.83rem;color:var(--gray);margin-top:.2rem;">Tested on a held-out 20% of calls never seen in training. We then re-trained with every ethically sensitive attribute removed and compared accuracy &mdash; see Ethics below for the result.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="chart-card" style="height:100%;">
+          <div class="chart-title">Value Distribution Across All Training Calls</div>
+          <div class="chart-subtitle">231,146 calls &mdash; sharply bimodal: near-zero for no-loan calls, a long tail for loan calls</div>
+          <div class="chart-container">
+            <canvas id="distChart"></canvas>
+          </div>
+          <div class="insight-box">
+            <strong>Key insight</strong>
+            44% of all calls cluster at $0&ndash;100 (no loan issued). The rest spread from a few hundred dollars to tens of thousands &mdash; which is exactly why we model the two groups separately instead of forcing one curve to fit both.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- KEY FINDINGS -->
+<section style="background:var(--lightgray);" id="findings">
+  <div class="container">
+    <div class="section-label">Key Findings</div>
+    <div class="section-title">What actually drives loan-call value &mdash; and what doesn't</div>
+    <p class="section-subtitle">The differences come from the loan and how it's repaid &mdash; not from who's calling or what they say the money is for.</p>
+
+    <div class="charts-grid">
+
+      <!-- Chart 1: Acceptance rate by loan purpose -->
+      <div class="chart-card">
+        <div class="chart-title">Acceptance Rate &amp; Average Value by Loan Purpose</div>
+        <div class="chart-subtitle">Acceptance is flat across purposes &mdash; typical loan size is what differs</div>
+        <div class="chart-container">
+          <canvas id="purposeChart"></canvas>
+        </div>
+        <div class="insight-box">
+          <strong>Management implication</strong>
+          Acceptance rate is essentially flat (55&ndash;57%) across every loan purpose. What differs is the typical amount requested &mdash; that's why &ldquo;loan purpose&rdquo; is only a small (5.9%) driver of value, acting entirely through loan size, not approval odds.
+        </div>
+      </div>
+
+      <!-- Chart 2: Credit score vs value -->
+      <div class="chart-card">
+        <div class="chart-title">Credit Score Band vs. Average Loan-Call Value</div>
+        <div class="chart-subtitle">Once a loan is issued, credit score barely moves its value</div>
+        <div class="chart-container">
+          <canvas id="creditChart"></canvas>
+        </div>
+        <div class="insight-box">
+          <strong>Management implication</strong>
+          Average value is essentially flat across credit-score bands &mdash; the highest-score band ($3,603) is actually slightly below the middle bands. Credit score doesn't make our model's top-9 driver list at all.
+        </div>
+      </div>
+
+      <!-- Chart 3: Feature importance -->
+      <div class="chart-card">
+        <div class="chart-title">What the Model Relies On &mdash; Feature Importance (SHAP)</div>
+        <div class="chart-subtitle">Top predictors of call value &mdash; clean model, zero sensitive attributes</div>
+        <div class="chart-container">
+          <canvas id="featureChart"></canvas>
+        </div>
+        <div class="insight-box">
+          <strong>Key takeaway</strong>
+          Repayment behaviour and fee/interest dynamics dominate (&gt;75% combined). Loan size and purpose together account for under 12%. Personal characteristics: 0%, by design.
+        </div>
+      </div>
+
+      <!-- Chart 4: Employee performance -->
+      <div class="chart-card">
+        <div class="chart-title">Employee Performance Score vs. Avg Loan-Call Value</div>
+        <div class="chart-subtitle">A real effect &mdash; but a modest one, not a dramatic one</div>
+        <div class="chart-container">
+          <canvas id="empChart"></canvas>
+        </div>
+        <div class="insight-box">
+          <strong>Management implication</strong>
+          Moving from the bottom to the top employee-performance band lifts average value by about 17% ($3,821 &rarr; $4,474). Real and worth investing in &mdash; just smaller than headline &ldquo;top agent&rdquo; claims often suggest.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Payment status breakdown -->
+    <div style="margin-top:1.5rem;" class="chart-card">
+      <div class="chart-title">Loan Repayment Status &mdash; Impact on Call Value</div>
+      <div class="chart-subtitle">Value reflects the cash relationship to date, not a simple win/lose flag</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-top:1rem;">
+        <div style="text-align:center;padding:1.2rem;background:var(--lightgray);border-radius:8px;">
+          <div style="font-size:1.8rem;font-weight:900;color:#f97316;">$5,820</div>
+          <div style="font-size:.8rem;font-weight:700;color:var(--gray);margin-top:.3rem;">LATE (60 DAYS)</div>
+          <div style="font-size:.75rem;color:var(--gray);">Active, larger loans currently slipping</div>
+        </div>
+        <div style="text-align:center;padding:1.2rem;background:var(--lightgray);border-radius:8px;">
+          <div style="font-size:1.8rem;font-weight:900;color:var(--gold);">$5,386</div>
+          <div style="font-size:.8rem;font-weight:700;color:var(--gray);margin-top:.3rem;">LATE (30 DAYS)</div>
+          <div style="font-size:.75rem;color:var(--gray);">At risk &mdash; early intervention window</div>
+        </div>
+        <div style="text-align:center;padding:1.2rem;background:var(--lightgray);border-radius:8px;">
+          <div style="font-size:1.8rem;font-weight:900;color:var(--lightblue);">$4,186</div>
+          <div style="font-size:.8rem;font-weight:700;color:var(--gray);margin-top:.3rem;">ON TIME</div>
+          <div style="font-size:.75rem;color:var(--gray);">Healthy, currently performing</div>
+        </div>
+        <div style="text-align:center;padding:1.2rem;background:var(--lightgray);border-radius:8px;">
+          <div style="font-size:1.8rem;font-weight:900;color:var(--red);">$2,600</div>
+          <div style="font-size:.8rem;font-weight:700;color:var(--gray);margin-top:.3rem;">CHARGED OFF</div>
+          <div style="font-size:.75rem;color:var(--gray);">Defaulted &mdash; but interest &amp; partial principal already collected</div>
+        </div>
+        <div style="text-align:center;padding:1.2rem;background:var(--lightgray);border-radius:8px;">
+          <div style="font-size:1.8rem;font-weight:900;color:var(--green);">$2,457</div>
+          <div style="font-size:.8rem;font-weight:700;color:var(--gray);margin-top:.3rem;">FULLY REPAID</div>
+          <div style="font-size:.75rem;color:var(--gray);">Closed &mdash; skews toward smaller, faster-cycling loans</div>
+        </div>
+        <div style="text-align:center;padding:1.2rem;background:var(--lightgray);border-radius:8px;">
+          <div style="font-size:1.8rem;font-weight:900;color:var(--gray);">$55</div>
+          <div style="font-size:.8rem;font-weight:700;color:var(--gray);margin-top:.3rem;">NO LOAN ISSUED</div>
+          <div style="font-size:.75rem;color:var(--gray);">Enquired, didn't borrow &mdash; minimal value</div>
+        </div>
+      </div>
+      <div class="insight-box">
+        <strong>Why is &ldquo;Charged off&rdquo; still worth $2,600, and why is &ldquo;Late&rdquo; worth more than &ldquo;On time&rdquo;?</strong>
+        Value isn't a win/lose flag &mdash; it's cash collected to date. A loan that's later charged off has usually already paid real interest and partial principal first. And loans currently 30&ndash;60 days late tend to be larger, still-active loans mid-life that have already generated substantial interest, while &ldquo;fully repaid&rdquo; skews toward smaller, faster-cycling loans that have already closed out.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT-IF DECISION TOOL -->
+<section class="whatif" id="tool">
+  <div class="container">
+    <div class="section-label" style="color:var(--gold);">Decision Support Tool</div>
+    <div class="section-title">Try It: What Is a Loan Call Worth?</div>
+    <p class="section-subtitle">Move the four essential value drivers and watch the estimate respond. A simplified, illustrative view of the model, grounded in real value-to-loan-size ratios by repayment status &mdash; for intuition, not a quote.</p>
+
+    <div class="tool-grid">
+      <div class="tool-controls">
+        <div class="control-group">
+          <div class="control-label">Loan size &nbsp;<span id="szVal">$5,000</span></div>
+          <input type="range" id="szSlider" min="300" max="15000" step="100" value="5000" oninput="updateTool()">
+        </div>
+        <div class="control-group">
+          <div class="control-label">Interest rate (APR) &nbsp;<span id="rateVal">15%</span></div>
+          <input type="range" id="rateSlider" min="5" max="28" step="0.5" value="15" oninput="updateTool()">
+        </div>
+        <div class="control-group">
+          <div class="control-label">Share of loan repaid &nbsp;<span id="ppfVal">50%</span></div>
+          <input type="range" id="ppfSlider" min="0" max="100" step="5" value="50" oninput="updateTool()">
+        </div>
+        <div class="control-group">
+          <div class="control-label" style="margin-bottom:.6rem;">Repayment status</div>
+          <div class="seg" id="statusSeg">
+            <button data-r="1.6546" data-name="On time" class="on">On time</button>
+            <button data-r="1.5730" data-name="Late">Late</button>
+            <button data-r="1.2241" data-name="Fully repaid">Fully repaid</button>
+            <button data-r="0.7616" data-name="Defaulted">Defaulted</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="tool-result">
+          <div style="font-size:.8rem;color:rgba(255,255,255,.5);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.08em;">Estimated Call Value</div>
+          <div class="result-value" id="resultValue">$8,300</div>
+          <div class="result-label">Illustrative value, given a loan was issued</div>
+          <div class="result-hint" id="resultHint">A healthy, performing loan at a typical rate.</div>
+        </div>
+        <div class="tool-disclaimer">Drivers used: loan size &middot; interest rate &middot; repayment progress &middot; repayment status &mdash; the four factors that move loan-call value most. This simplified formula is grounded in real median value-to-loan-size ratios by status, not the full 9-feature model used for the actual submission.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ETHICS -->
+<section class="ethics" id="ethics">
+  <div class="container">
+    <div class="section-label">Ethical Framework</div>
+    <div class="section-title">Fair by design &mdash; and it cost us nothing</div>
+    <p class="section-subtitle">A valuation model can quietly discriminate if it leans on personal characteristics. We built it without any sensitive personal data at all, and verified the business loses nothing by doing so.</p>
+
+    <div class="ethics-grid">
+
+      <div class="ethics-card">
+        <div class="ethics-icon">&#9878;&#65039;</div>
+        <div class="ethics-title">Protected Characteristics in the Raw Data</div>
+        <div class="ethics-body">The dataset includes client race, sex, nativity, age, marital status and number of children &mdash; all protected or proxy-protected under fair-lending law (ECOA). Using these in a model that could influence resource or credit decisions would be both illegal and discriminatory, regardless of predictive power.</div>
+        <span class="safeguard-tag">Safeguard: excluded from every feature used by the deployed (clean) model</span>
+      </div>
+
+      <div class="ethics-card">
+        <div class="ethics-icon">&#128506;&#65039;</div>
+        <div class="ethics-title">Geographic Proxies for Race</div>
+        <div class="ethics-body">State, zip code, timezone, urban-vs-rural flag, and zip-code coordinates can act as proxies for race and income (redlining risk), even with no protected attribute present directly.</div>
+        <span class="safeguard-tag">Safeguard: every geographic identifier removed from the clean model</span>
+      </div>
+
+      <div class="ethics-card">
+        <div class="ethics-icon">&#128202;</div>
+        <div class="ethics-title">Does Fairness Cost Accuracy?</div>
+        <div class="ethics-body">We trained the identical model twice on the same held-out split &mdash; once with every sensitive attribute included, once without. Held-out MAE: <strong>$86.61 with</strong> sensitive data vs. <strong>$86.29 without</strong>. Removing every sensitive attribute didn't cost a cent of accuracy &mdash; if anything it was marginally better.</div>
+        <span class="safeguard-tag">Result: fairness here is effectively free</span>
+      </div>
+
+      <div class="ethics-card">
+        <div class="ethics-icon">&#128274;</div>
+        <div class="ethics-title">Sensitive PII in the Raw Data</div>
+        <div class="ethics-body">The raw dataset contains Social Security numbers, passport numbers, credit card numbers and issuers, plaintext passwords, IPv6 addresses and barcodes &mdash; a serious data-governance issue independent of modelling.</div>
+        <span class="safeguard-tag">Safeguard: all raw PII dropped before any feature engineering</span>
+      </div>
+
+      <div class="ethics-card">
+        <div class="ethics-icon">&#128101;</div>
+        <div class="ethics-title">Who Is Affected</div>
+        <div class="ethics-body">Calls that don't convert into a loan skew toward financially comfortable callers &mdash; about 53% higher income, stronger credit scores, more likely employed &mdash; i.e. people who likely didn't need the loan, not people who were turned away. Caveat: the data shows whether a call converted, not who declined, so we can describe the pattern but not assign the decision to either side.</div>
+        <span class="safeguard-tag">Safeguard: value is one input to resource decisions, never the sole basis for declining service</span>
+      </div>
+
+      <div class="ethics-card">
+        <div class="ethics-icon">&#128226;</div>
+        <div class="ethics-title">Transparency &amp; Governance</div>
+        <div class="ethics-body">The model is fully explainable gradient-boosted trees &mdash; no neural networks &mdash; so any single prediction can be traced back to the SHAP-based drivers behind it. We recommend regular bias-drift audits and a human in the loop for any decision the score informs.</div>
+        <span class="safeguard-tag">Safeguard: SHAP attribution available for every prediction</span>
+      </div>
+
+    </div>
+
+    <div class="highlight-box" style="margin-top:2rem;">
+      <h3>Our Bottom Line on Ethics</h3>
+      <p>This model should inform resource allocation and portfolio analysis &mdash; not decide who receives a loan. Built without a single sensitive personal attribute, and proven to lose no accuracy by doing so, it lets management defend every dollar figure to a regulator or partner. Adopt the clean model as standard, and routinely check that no proxy (like geography) sneaks bias back in.</p>
+    </div>
+  </div>
+</section>
+
+<!-- RECOMMENDATIONS -->
+<section class="recs" id="recommendations">
+  <div class="container">
+    <div class="section-label">Strategic Recommendations</div>
+    <div class="section-title">Four levers to raise value per call, in priority order</div>
+    <p class="section-subtitle">Framed so growth comes from customers succeeding, not from charging anyone more.</p>
+
+    <div class="recs-list">
+
+      <div class="rec-card">
+        <div class="rec-priority p1">1</div>
+        <div class="rec-body">
+          <div class="rec-title">Convert more of the right enquiries into loans</div>
+          <div class="rec-desc">44.3% of all calls end with no loan issued &mdash; worth about $55 each. Helping more suitable enquirers find a well-matched loan is the single biggest unlock; it doesn't require relaxing underwriting, just better matching at the point of the call.</div>
+          <span class="rec-impact impact-high">Biggest prize &middot; start here</span>
+        </div>
+      </div>
+
+      <div class="rec-card">
+        <div class="rec-priority p2">2</div>
+        <div class="rec-body">
+          <div class="rec-title">Keep good loans performing with early support</div>
+          <div class="rec-desc">A charged-off loan settles around $2,600 &mdash; roughly half of a healthy on-time loan's $4,186. Proactive reminders and hardship support before a loan tips into 30&ndash;60 day delinquency protect both the customer and the realised value.</div>
+          <span class="rec-impact impact-high">High impact &middot; low cost</span>
+        </div>
+      </div>
+
+      <div class="rec-card">
+        <div class="rec-priority p3">3</div>
+        <div class="rec-body">
+          <div class="rec-title">Right-size loans for qualified borrowers</div>
+          <div class="rec-desc">Value scales hard with loan size: $1,322 average value under $1k requested, vs. $21,306 average above $10k. Offering appropriately larger loans to borrowers who can comfortably sustain them grows value responsibly.</div>
+          <span class="rec-impact impact-med">Medium term</span>
+        </div>
+      </div>
+
+      <div class="rec-card">
+        <div class="rec-priority p4">4</div>
+        <div class="rec-body">
+          <div class="rec-title">Keep the clean (non-sensitive) model as the production standard</div>
+          <div class="rec-desc">Since removing every sensitive attribute and geographic proxy cost no accuracy, there is no business case for ever reintroducing them. Pair this with a recurring bias-drift audit and a human in the loop on any decision the score touches.</div>
+          <span class="rec-impact impact-low">Ongoing discipline</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- TECHNICAL DETAIL (ACCORDION) -->
+<section class="tech" id="technical">
+  <div class="container">
+    <div class="section-label">For the Curious</div>
+    <div class="section-title">Technical Detail</div>
+    <p class="section-subtitle">Heavy methodology kept here &mdash; out of the main flow but available for sceptical readers.</p>
+
+    <div style="display:flex;flex-direction:column;gap:.6rem;">
+
+      <div class="accordion">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          What model did we use, and why?
+          <span class="accordion-arrow">&#9660;</span>
+        </div>
+        <div class="accordion-body">
+          <p>Two specialist <code>XGBoost</code> regressors, both trained with the <code>reg:absoluteerror</code> objective &mdash; i.e. optimised directly for Mean Absolute Error, the exact metric we're scored on:</p>
+          <ul style="margin:.5rem 0 .5rem 1.2rem;">
+            <li>A &ldquo;no-loan&rdquo; specialist for the 44.3% of calls where no loan was issued &mdash; low, steady value, easy to predict.</li>
+            <li>A &ldquo;loan&rdquo; specialist for the 55.7% of calls where a loan was issued, trained to predict <em>value as a fraction of loan size</em> (weighted by loan size), then rescaled back to dollars. This sharpened large-loan estimates considerably.</li>
+          </ul>
+          <p>We also benchmarked Random Forest and Ridge regression; XGBoost gave the lowest held-out MAE. We deliberately avoided neural networks &mdash; every prediction here is explainable.</p>
+        </div>
+      </div>
+
+      <div class="accordion">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          Which features were used (and which were excluded)?
+          <span class="accordion-arrow">&#9660;</span>
+        </div>
+        <div class="accordion-body">
+          <table class="tech-table">
+            <thead><tr><th>Feature Group</th><th>Included</th><th>Excluded &amp; Why</th></tr></thead>
+            <tbody>
+              <tr><td>Loan &amp; Application</td><td>Requested amount, final rate, rate spread, fee fields, repayment fields</td><td>&mdash;</td></tr>
+              <tr><td>Client</td><td>Credit score, and other non-protected client fields</td><td>Race, sex, nativity, age, marital status, number of children (ECOA-protected); SSN, passport #, credit card #/issuer, password, barcode (PII)</td></tr>
+              <tr><td>Geographic</td><td>&mdash;</td><td>State, zip code, timezone, urban/rural flag, zip-code lat/long/distance (redlining-risk proxies)</td></tr>
+              <tr><td>Employee</td><td>Performance score, weeks in job, IQ/EQ/experience at hire</td><td>Names, UID, password (PII)</td></tr>
+              <tr><td>Repayment (if available)</td><td>Payment status, outstanding principal, amounts paid</td><td>&mdash;</td></tr>
+              <tr><td>Identifiers</td><td>Used only as join keys</td><td>CALL_id, CLIENT_census_id, EMPLOYEE_employee_number, LOAN_id (dropped from model features)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="accordion">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          How well did the model perform?
+          <span class="accordion-arrow">&#9660;</span>
+        </div>
+        <div class="accordion-body">
+          <table class="tech-table">
+            <thead><tr><th>Metric</th><th>Value</th><th>Interpretation</th></tr></thead>
+            <tbody>
+              <tr><td>Held-out MAE (clean model)</td><td>$86.29</td><td>Average dollar gap to the acquirer's true value, on calls never seen in training</td></tr>
+              <tr><td>Held-out MAE (with sensitive attrs)</td><td>$86.61</td><td>Confirms removing sensitive data cost nothing &mdash; in fact slightly better without</td></tr>
+              <tr><td>MAE as % of mean call value</td><td>3.9%</td><td>Typical error relative to the $2,226 average call value</td></tr>
+              <tr><td>Error across modelling iterations</td><td>111.7 &rarr; 103.1 &rarr; 96.4 &rarr; 86.3</td><td>~23% total MAE reduction across successive refinements</td></tr>
+            </tbody>
+          </table>
+          <p style="margin-top:.8rem;">We report only metrics we actually measured on held-out data &mdash; no fabricated R&sup2; or RMSE figures.</p>
+        </div>
+      </div>
+
+      <div class="accordion">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          How did we handle the two segments and extreme values?
+          <span class="accordion-arrow">&#9660;</span>
+        </div>
+        <div class="accordion-body">
+          <p>Every call &mdash; in training and in the set to be valued &mdash; carries a <code>LOAN_id</code> that is present if and only if a loan was issued. We use that to route each call to its specialist:</p>
+          <ol style="margin:.5rem 0 .5rem 1.2rem;">
+            <li>No <code>LOAN_id</code> &rarr; the no-loan specialist predicts value directly.</li>
+            <li>Has a <code>LOAN_id</code> &rarr; the loan specialist predicts value/loan-size, then we multiply back by the requested loan size.</li>
+            <li>Final predictions are clipped to the minimum and maximum VALUE actually observed in training &mdash; a safety bound so the model can never output an impossible number.</li>
+          </ol>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <strong>Group 13</strong> &nbsp;|&nbsp; IMD AI &amp; Analytics Bootcamp &nbsp;|&nbsp; June 2026<br>
+  <span class="disc">Methodology: explainable gradient-boosted trees, two-segment design, validated on held-out data, built without sensitive attributes. All figures are derived from a <strong>synthetic dataset</strong> provided for this exercise &mdash; they replicate realistic statistical patterns but contain no real individuals and must not be read as factual claims about any real institution.</span>
+</footer>
+
+<script>
+// ─── CHARTS ────────────────────────────────────────────────────────
+const NAVY = '#0f2d5c', BLUE = '#1e56a0', GOLD = '#f59e0b', GREEN = '#10b981', RED = '#ef4444', LGRAY = '#e5e7eb';
+Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+Chart.defaults.color = '#6b7280';
+
+// 1. Value distribution (% of all 231,146 training calls)
+new Chart(document.getElementById('distChart'), {
+  type: 'bar',
+  data: {
+    labels: ['$0-100','$100-500','$500-1K','$1K-2K','$2K-3K','$3K-4K','$4K-5K','$5K+'],
+    datasets: [{
+      label: '% of calls',
+      data: [44.1, 1.7, 4.5, 12.0, 10.8, 7.9, 5.5, 13.7],
+      backgroundColor: [RED,'#fb923c','#fbbf24',BLUE,BLUE,BLUE,NAVY,NAVY],
+      borderRadius: 5,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.raw}% of calls` } } },
+    scales: { x: { grid: { display: false } }, y: { grid: { color: '#f3f4f6' }, ticks: { callback: v => v + '%' } } }
+  }
+});
+
+// 2. Acceptance rate + avg value by loan purpose (real, computed from training data)
+new Chart(document.getElementById('purposeChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Home Improv.','Car Purchase','Debt Consol.','Medical','Education','Small Biz','Wedding','Gifts/Celeb.'],
+    datasets: [
+      { label: 'Acceptance Rate %', data: [55.7,56.0,55.6,56.0,56.1,55.9,55.1,56.7], backgroundColor: GOLD, borderRadius: 4, yAxisID: 'y' },
+      { label: 'Avg Value ($)', data: [2853,1761,2265,2782,1561,5249,2143,748], backgroundColor: BLUE, borderRadius: 4, yAxisID: 'y2' }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+      y: { position: 'left', title: { display: true, text: 'Acceptance %' }, max: 80, grid: { color: '#f3f4f6' } },
+      y2: { position: 'right', title: { display: true, text: 'Avg Value $' }, grid: { display: false } }
+    }
+  }
+});
+
+// 3. Feature importance (real SHAP-derived %, clean model)
+new Chart(document.getElementById('featureChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Share of loan repaid','Fees & interest outstanding','Total fees & interest','Total repaid vs borrowed','Fees vs principal','Total still owed','Loan purpose','Loan size','Time since the call'],
+    datasets: [{
+      label: '% of model reasoning',
+      data: [35.4, 13.5, 9.8, 9.7, 7.4, 6.6, 5.9, 5.9, 5.7],
+      backgroundColor: [NAVY,NAVY,NAVY,BLUE,BLUE,BLUE,'#93c5fd','#93c5fd',LGRAY],
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.x + '% of the model\'s reasoning' } } },
+    scales: { x: { grid: { color: '#f3f4f6' }, ticks: { callback: v => v + '%' } }, y: { grid: { display: false }, ticks: { font: { size: 11 } } } }
+  }
+});
+
+// 4. Employee performance vs value (real, computed from training data)
+new Chart(document.getElementById('empChart'), {
+  type: 'bar',
+  data: {
+    labels: ['<40','40-55','55-65','65-75','75-85','85+'],
+    datasets: [{
+      label: 'Avg Call Value ($)',
+      data: [3821, 3831, 3930, 4070, 4065, 4474],
+      backgroundColor: [RED,'#fb923c','#fbbf24',BLUE,NAVY,NAVY],
+      borderRadius: 5,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` $${c.raw.toLocaleString()}` } } },
+    scales: {
+      x: { grid: { display: false }, title: { display: true, text: 'Employee Performance Score' } },
+      y: { grid: { color: '#f3f4f6' }, ticks: { callback: v => '$' + v.toLocaleString() }, min: 3000 }
+    }
+  }
+});
+
+// ─── WHAT-IF TOOL (grounded in real ratio_by_status medians) ────────
+const szS=document.getElementById('szSlider'), rateS=document.getElementById('rateSlider'), ppfS=document.getElementById('ppfSlider'),
+      szV=document.getElementById('szVal'), rateV=document.getElementById('rateVal'), ppfV=document.getElementById('ppfVal'),
+      out=document.getElementById('resultValue'), hint=document.getElementById('resultHint'), seg=document.getElementById('statusSeg');
+let ratio = 1.6546, statusName = 'On time';
+function rateFactor(r) { return Math.min(1.25, Math.max(0.85, 0.9 + (r - 10) * 0.022)); }
+function paidMod(p) { return 1.25 - 0.5 * (p / 100); }
+function updateTool() {
+  const sz = +szS.value, r = +rateS.value, p = +ppfS.value;
+  szV.textContent = '$' + sz.toLocaleString();
+  rateV.textContent = r + '%';
+  ppfV.textContent = p + '%';
+  let v = sz * ratio * rateFactor(r) * paidMod(p);
+  v = Math.max(0, Math.round(v / 10) * 10);
+  out.textContent = '$' + v.toLocaleString();
+  const hints = {
+    'On time': 'A healthy, performing loan — value grows with size and rate.',
+    'Late': 'Payments are slipping — but the loan is still active and accruing value.',
+    'Fully repaid': 'Loan complete — value already realised, typically a smaller, faster-cycling loan.',
+    'Defaulted': 'A default cuts value roughly in half — though real interest was already collected.'
+  };
+  hint.textContent = hints[statusName];
+}
+seg.querySelectorAll('button').forEach(b => b.onclick = () => {
+  seg.querySelectorAll('button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on'); ratio = +b.dataset.r; statusName = b.dataset.name; updateTool();
+});
+updateTool();
+
+// ─── ACCORDION ─────────────────────────────────────────────────────
+function toggleAccordion(header) {
+  const body  = header.nextElementSibling;
+  const arrow = header.querySelector('.accordion-arrow');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  arrow.classList.toggle('open', !isOpen);
+}
+</script>
+</body>
+</html>
